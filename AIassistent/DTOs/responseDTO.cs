@@ -1,6 +1,6 @@
 ﻿namespace AIassistent.DTOs
 {
-    public class GenerateResponse
+    public class responseDTO
     {
         public string GeneratedText { get; set; } = string.Empty;
     }
