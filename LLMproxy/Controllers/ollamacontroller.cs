@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace AIassistent.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/ollama")]
     public class Ollamacontroller : ControllerBase
     {
 

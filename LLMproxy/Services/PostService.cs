@@ -26,13 +26,15 @@ public class PostService : IpostService
 
         var raw = await response.Content.ReadAsStringAsync();
 
-        if (!response.IsSuccessStatusCode)
+        try
         {
-            throw new Exception($"Ollama error {(int)response.StatusCode}: {raw}");
+            var result = System.Text.Json.JsonSerializer.Deserialize<OllamaResponseDTO>(raw);
+
+            return result?.response ?? "Inget svar från Ollama";
         }
-
-        var result = System.Text.Json.JsonSerializer.Deserialize<OllamaResponseDTO>(raw);
-
-        return result?.response ?? "Inget svar från Ollama";
+        catch (System.Text.Json.JsonException ex)
+        {
+            throw new Exception($"Kunde inte tolka JSON från Ollama. Raw response: {raw}", ex);
+        }
     }
 }
