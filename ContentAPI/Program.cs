@@ -1,7 +1,8 @@
 using ContentAPI.Data;
 using ContentAPI.Services;
 using Microsoft.EntityFrameworkCore;
-
+using Scalar.AspNetCore;
+using Microsoft.AspNetCore.OpenApi;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,13 +11,21 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddControllers();
+
+builder.Services.AddOpenApi(options =>
+{
+    options.AddDocumentTransformer((document, context, cancellationToken) =>
+    {
+        return Task.CompletedTask;
+    });
+});
 
 builder.Services.AddScoped<IContentService, ContentService>();
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseInMemoryDatabase("ContentDb"));
+
 
 
 builder.Services.AddHttpClient("LLMproxy", client =>
@@ -26,15 +35,26 @@ builder.Services.AddHttpClient("LLMproxy", client =>
 
 var app = builder.Build();
 
+
+app.UseExceptionHandler(errorApp =>
+{
+    errorApp.Run(async context =>
+    {
+        context.Response.StatusCode = 500;
+        await context.Response.WriteAsync("Something went wrong");
+    });
+});
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
+    app.MapOpenApi();
+    app.MapScalarApiReference();
 }
 
-
 app.UseHttpsRedirection();
+
+app.UseRouting();
 
 app.UseAuthorization();
 

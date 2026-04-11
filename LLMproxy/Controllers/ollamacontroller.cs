@@ -19,6 +19,9 @@ namespace AIassistent.Controllers
             _postService = postService;
         }
 
+        // <summary>
+        // Denna action metod tar emot en requestDTO som innehåller en prompt, och returnerar en responseDTO som innehåller den genererade texten från ollama
+        // </summary>
         [HttpPost]
         public async Task<ActionResult<responseDTO>> Post(requestDTO request)
         {

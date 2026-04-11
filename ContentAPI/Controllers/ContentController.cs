@@ -14,7 +14,11 @@ namespace ContentAPI.Controllers
         {
             _contentService = contentService;
         }
-
+        /// <summary>
+        /// Skapar nytt AI-genererat innehåll.
+        /// </summary>
+        /// <param name="request">Prompt och kategori för innehållet som ska skapas.</param>
+        /// <returns>Det skapade AI-innehållet.</returns>
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] CreateRequestDTO request)
         {
