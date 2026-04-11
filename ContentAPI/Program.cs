@@ -18,6 +18,7 @@ builder.Services.AddScoped<IContentService, ContentService>();
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseInMemoryDatabase("ContentDb"));
 
+
 builder.Services.AddHttpClient("LLMproxy", client =>
 {
     client.BaseAddress = new Uri("http://localhost:5008");

@@ -1,6 +1,7 @@
 
 
 using AIassistent.services;
+using ContentAPI.Filters;
 using Microsoft.Extensions.DependencyInjection;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -13,6 +14,7 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddScoped<IpostService, PostService>();
+builder.Services.AddScoped<ApiKeyFilter>();
 
 builder.Services.AddHttpClient("Ollama", client =>
 {

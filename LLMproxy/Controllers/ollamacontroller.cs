@@ -1,11 +1,14 @@
 ﻿using AIassistent.DTOs;
 using AIassistent.services;
+using ContentAPI.Filters;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AIassistent.Controllers
 {
     [ApiController]
     [Route("api/ollama")]
+    // detta filter körs innan requesten går vidare till action metoden, och kontrollerar att en giltig API-nyckel finns i requesten
+    [ServiceFilter(typeof(ApiKeyFilter))]
     public class Ollamacontroller : ControllerBase
     {
 
