@@ -1,8 +1,9 @@
 using ContentAPI.Data;
+using ContentAPI.Fillters;
 using ContentAPI.Services;
+using Microsoft.AspNetCore.OpenApi;
 using Microsoft.EntityFrameworkCore;
 using Scalar.AspNetCore;
-using Microsoft.AspNetCore.OpenApi;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,6 +13,8 @@ builder.Services.AddControllers();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 
 builder.Services.AddControllers();
+
+builder.Services.AddScoped<ExecutionTimeFilter>();
 
 builder.Services.AddOpenApi(options =>
 {

@@ -1,11 +1,13 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using ContentAPI.DTOs;
+using ContentAPI.Fillters;
 using ContentAPI.Services;
-using ContentAPI.DTOs;
+using Microsoft.AspNetCore.Mvc;
 
 namespace ContentAPI.Controllers
 {
     [ApiController]
     [Route("api/content")]
+    [ServiceFilter(typeof(ExecutionTimeFilter))]
     public class ContentController : ControllerBase
     {
         private readonly IContentService _contentService;
