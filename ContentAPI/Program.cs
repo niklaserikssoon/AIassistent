@@ -1,5 +1,6 @@
 using ContentAPI.Data;
 using ContentAPI.Fillters;
+using ContentAPI.Repository;
 using ContentAPI.Services;
 using Microsoft.AspNetCore.OpenApi;
 using Microsoft.EntityFrameworkCore;
@@ -28,6 +29,8 @@ builder.Services.AddScoped<IContentService, ContentService>();
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseInMemoryDatabase("ContentDb"));
+
+builder.Services.AddScoped<IContentRepository, ContentRepository>();
 
 
 

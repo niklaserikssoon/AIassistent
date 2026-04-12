@@ -1,24 +1,23 @@
 ﻿using ContentAPI.Data;
 using ContentAPI.DTOs;
+using ContentAPI.Repository;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.VisualBasic;
 using System.Net.Http;
 
 namespace ContentAPI.Services
 {
     public class ContentService : IContentService
     {
-        private readonly AppDbContext _context;
-        // HttpClientFactory för att skapa HttpClient-instans som används för att göra HTTP-förfrågningar till Ollama API
+        private readonly IContentRepository _repository;
         private readonly IHttpClientFactory _httpClientFactory;
-
         private readonly IConfiguration _configuration;
 
-        public ContentService(AppDbContext context, IHttpClientFactory httpClientFactory, IConfiguration configuration)
+        public ContentService(IContentRepository repository,IHttpClientFactory httpClientFactory,IConfiguration configuration)
         {
-            _context = context;
+            _repository = repository;
             _httpClientFactory = httpClientFactory;
-            _configuration = configuration;
             _configuration = configuration;
         }
 
@@ -49,8 +48,7 @@ namespace ContentAPI.Services
                 GeneratedText = result.GeneratedText,
                 CreatedAt = DateTime.UtcNow
             };
-            _context.Contents.Add(content);
-            await _context.SaveChangesAsync();
+            await _repository.AddAsync(content);
 
             return new ResponseDTO
             {
@@ -65,68 +63,69 @@ namespace ContentAPI.Services
         // tar bort en request DTO baserat på dess id, och returnerar true om borttagningen lyckades, annars false
         public async Task<bool> DeleteAsync(int id)
         {
-            var item = await _context.Contents.FindAsync(id);
-            if (item == null)
-                return false;
-
-            _context.Contents.Remove(item);
-            await _context.SaveChangesAsync();
-            return true;
+            return await _repository.DeleteAsync(id);
         }
 
 
         // returnerar alla request DTOs som finns i den interna listan
-        public Task<IEnumerable<ResponseDTO>> GetAllAsync(string category)
+        public async Task<IEnumerable<ResponseDTO>> GetAllAsync(string category)
         {
-            var query = _context.Contents.AsQueryable();
+
+            var contents = await _repository.GetAllAsync();
+
             if (!string.IsNullOrEmpty(category))
             {
-                query = query.Where(c => c.Category == category);
+                contents = contents
+                    .Where(c => c.Category == category)
+                    .ToList();
             }
-            var result = query.Select(c => new ResponseDTO
+            return contents.Select(c => new ResponseDTO
             {
                 Id = c.Id,
                 Promt = c.Promt,
                 Category = c.Category,
                 GeneratedText = c.GeneratedText,
                 CreatedAt = c.CreatedAt
-            }).ToList();
-            return Task.FromResult<IEnumerable<ResponseDTO>>(result);
+            });
         }
 
 
         // returnerar en specifik request DTO baserat på dess id, eller null om den inte hittas
-        public Task<ResponseDTO> GetByIdAsync(int id)
+        public async Task<ResponseDTO> GetByIdAsync(int id)
         {
-            var content = _context.Contents.Find(id);
+            var content = await _repository.GetByIdAsync(id);
             if (content == null)
-                return Task.FromResult<ResponseDTO>(null);
-            return Task.FromResult(new ResponseDTO
+            {
+                return null;
+            }
+            return new ResponseDTO
             {
                 Id = content.Id,
                 Promt = content.Promt,
                 Category = content.Category,
                 GeneratedText = content.GeneratedText,
                 CreatedAt = content.CreatedAt
-            });
+            };
         }
         // uppdaterar en specifik request DTO baserat på dess id och den nya prompten, och returnerar den uppdaterade request DTO:n, eller null om den inte hittas
-        public Task<ResponseDTO> UpdateAsync(int id, UpdateRequestDTO request)
+        public async Task<ResponseDTO> UpdateAsync(int id, UpdateRequestDTO request)
         {
-            var content = _context.Contents.Find(id);
+            var content = await _repository.GetByIdAsync(id);
             if (content == null)
-                return Task.FromResult<ResponseDTO>(null);
+            {
+                return null;
+            }
             content.Promt = request.Promt;
             content.Category = request.Category;
-            _context.SaveChanges();
-            return Task.FromResult(new ResponseDTO
+            await _repository.UpdateAsync(content);
+            return new ResponseDTO
             {
                 Id = content.Id,
                 Promt = content.Promt,
                 Category = content.Category,
                 GeneratedText = content.GeneratedText,
                 CreatedAt = content.CreatedAt
-            });
+            };
         }
     }
 }
