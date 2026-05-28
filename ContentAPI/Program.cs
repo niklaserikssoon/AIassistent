@@ -5,6 +5,7 @@ using ContentAPI.Services;
 using Microsoft.AspNetCore.OpenApi;
 using Microsoft.EntityFrameworkCore;
 using Scalar.AspNetCore;
+using LLMproxy.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -36,20 +37,11 @@ builder.Services.AddScoped<IContentRepository, ContentRepository>();
 
 builder.Services.AddHttpClient("LLMproxy", client =>
 {
-    client.BaseAddress = new Uri("http://localhost:5008");
+    client.BaseAddress = new Uri(builder.Configuration["LLMProxy:BaseUrl"]!);
 });
 
 var app = builder.Build();
 
-
-app.UseExceptionHandler(errorApp =>
-{
-    errorApp.Run(async context =>
-    {
-        context.Response.StatusCode = 500;
-        await context.Response.WriteAsync("Something went wrong");
-    });
-});
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -57,6 +49,9 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
     app.MapScalarApiReference();
 }
+
+
+app.UseMiddleware<ExceptionMiddleware>();
 
 app.UseHttpsRedirection();
 
