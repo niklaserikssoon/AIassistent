@@ -36,12 +36,24 @@ Navigera till projektmappen (ContentAPI):
 
 Kör följande kommando:
   - dotnet user-secrets set "ApiSettings:InternalApiKey" "din-hemliga-nyckel"
-  - Exempel på nyckel: A5*51:)sH?p?2^ac6&
 
 3. Upprepa för LLMproxy
   - cd ../LLMproxy
   - dotnet user-secrets init
   - dotnet user-secrets set "ApiSettings:InternalApiKey" "din-hemliga-nyckel"
 
+4. Groq API
+- För att groq ska funka måste du skapa ett konto på https://groq.com/ (gratis) där kan du sedan
+  generera en API KEY som du sedan lägger i din user secrets
+
+```dotnet user-secrets set "OpenAI:ApiKey" "din-groq-nyckel" ```
+
+  ## 🚀 API-nyckel i produktion
+
+  I produktion funkar de i praktiken lika bara att dina user secrets inte är lokala utan lagras istället i molnet.
+  Azure som exempel använder sig av Azure key vault där du istället lagrar dina secrets och projektet kan då läsa av dessa med
+  hjälp av miljövariablar för att läsa dem korrekt och utan att dem ska läckas ut i synlig text
+
 ⚠️ Viktigt:
 API-nyckeln måste vara samma i båda projekten för att kommunikationen ska fungera.
+Lägg aldrig dina secrets i appsettings.json och se till att dem aldrig commitas.
