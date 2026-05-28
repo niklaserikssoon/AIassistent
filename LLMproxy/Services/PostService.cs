@@ -1,40 +1,47 @@
-﻿using AIassistent.DTOs;
+using AIassistent.DTOs;
 using AIassistent.services;
 using System.Net.Http.Json;
 
 public class PostService : IpostService
 {
     private readonly IHttpClientFactory _httpClientFactory;
+    private readonly IConfiguration _configuration;
 
-    public PostService(IHttpClientFactory httpClientFactory)
+    public PostService(IHttpClientFactory httpClientFactory, IConfiguration configuration)
     {
         _httpClientFactory = httpClientFactory;
+        _configuration = configuration;
     }
 
     public async Task<string> PostAsync(string prompt)
     {
-        var client = _httpClientFactory.CreateClient("Ollama");
+        var client = _httpClientFactory.CreateClient("OpenAI");
+        var endpoint = _configuration["OpenAI:Endpoint"]!;
+        var model = _configuration["OpenAI:Model"]!;
 
         var requestBody = new
         {
-            model = "llama3",
-            prompt = prompt,
-            stream = false
+            model,
+            messages = new[]
+            {
+                new { role = "user", content = prompt }
+            }
         };
 
-        var response = await client.PostAsJsonAsync("/api/generate", requestBody);
+        var response = await client.PostAsJsonAsync(endpoint, requestBody);
+        response.EnsureSuccessStatusCode();
 
         var raw = await response.Content.ReadAsStringAsync();
 
-        try
-        {
-            var result = System.Text.Json.JsonSerializer.Deserialize<OllamaResponseDTO>(raw);
+        if (string.IsNullOrWhiteSpace(raw))
+            throw new Exception("Tomt svar från OpenAI");
 
-            return result?.response ?? "Inget svar från Ollama";
-        }
-        catch (System.Text.Json.JsonException ex)
-        {
-            throw new Exception($"Kunde inte tolka JSON från Ollama. Raw response: {raw}", ex);
-        }
+        var result = System.Text.Json.JsonSerializer.Deserialize<OpenAiResponseDTO>(raw);
+        var content = result?.choices?.FirstOrDefault()?.message?.content;
+
+        if (string.IsNullOrWhiteSpace(content))
+            throw new Exception("Oväntat svar från OpenAI: inget innehåll i choices");
+
+        return content;
     }
 }
